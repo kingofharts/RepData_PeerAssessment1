@@ -11,8 +11,8 @@ This markdown file contains the necessary markdown, commentary and code to produ
 
 The code below sets expectations of the data per the assigment instructions, loads the data, and validates those data against the preset expectations.  Finally, the date column is converted from factor to date class.
 
-```{r echo=TRUE}
 
+```r
 ## Generate Expected Names variable
 
 expectedNames <- c("steps","date","interval")
@@ -33,15 +33,26 @@ data <- data.frame(read.csv("activity.csv"))
 ## Validate against expectations
 
 names(data) == expectedNames
+```
 
+```
+## [1] TRUE TRUE TRUE
+```
+
+```r
 nrow(data) == expectedRows
+```
 
+```
+## [1] TRUE
+```
+
+```r
 ## Clean up Date formatting
 
 require(lubridate)
 
 data$date <- ymd(data$date)
-
 ```
 
 ---
@@ -50,8 +61,8 @@ data$date <- ymd(data$date)
 
 After preprocessing the data into a flat object ("data"), steps-by-day is aggregated as a new object for plotting and summary by mean and median.
 
-```{r echo=TRUE}
 
+```r
 ## Aggregate flat data into object focused on total steps by day
 
 stepsDay <- aggregate(
@@ -74,21 +85,34 @@ hist(
       main="Daily Step Totals",
       ylim=c(0,25)
 )
+```
 
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.png) 
+
+```r
 ## Return the mean total steps per day
 
 mean(
       stepsDay$total_steps, 
       na.rm = TRUE
 )
+```
 
+```
+## [1] 10766
+```
+
+```r
 ## Return the median total steps per day
 
 median(
       stepsDay$total_steps, 
       na.rm = TRUE
 )
+```
 
+```
+## [1] 10765
 ```
 
 ---
@@ -97,8 +121,8 @@ median(
 
 Going back to the data object, a new aggregated object is constructed and plotted from based on average steps by each five minute interval.  Finally, the interval with the maximum average step count is returned.
 
-```{r echo=TRUE}
 
+```r
 ## Aggregate flat data into object focused on average steps by interval
 
 stepsInterval <- aggregate(
@@ -122,11 +146,19 @@ plot(
       ylab="Daily Average Steps", 
       main="Daily Average Steps by 5 Minute Interval"
 )
+```
 
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
+
+```r
 ## Return daily interval with maximum average steps
 
 stepsInterval[stepsInterval[,2]==max(stepsInterval[,2]),]
+```
 
+```
+##     interval average_steps
+## 104      835         206.2
 ```
 
 ---
@@ -135,18 +167,28 @@ stepsInterval[stepsInterval[,2]==max(stepsInterval[,2]),]
 
 A quick summary call shows the count of rows with NAs in the step count.
 
-```{r echo=TRUE}
 
+```r
 summary(data)
+```
 
+```
+##      steps            date               interval   
+##  Min.   :  0.0   Min.   :2012-10-01   Min.   :   0  
+##  1st Qu.:  0.0   1st Qu.:2012-10-16   1st Qu.: 589  
+##  Median :  0.0   Median :2012-10-31   Median :1178  
+##  Mean   : 37.4   Mean   :2012-10-31   Mean   :1178  
+##  3rd Qu.: 12.0   3rd Qu.:2012-11-15   3rd Qu.:1766  
+##  Max.   :806.0   Max.   :2012-11-30   Max.   :2355  
+##  NA's   :2304
 ```
 
 2,304.
 
 To replace these, I've opted to insert the average of the non-NA values for the corresponding interval for each row with an NA in the steps variable.
 
-```{r echo=TRUE}
 
+```r
 ## load plyr package
 
 require(plyr)
@@ -170,14 +212,23 @@ dataPlus <- dataPlus[,-4]
 ## Check for NAs
 
 summary(dataPlus)
+```
 
+```
+##      steps            date               interval   
+##  Min.   :  0.0   Min.   :2012-10-01   Min.   :   0  
+##  1st Qu.:  0.0   1st Qu.:2012-10-16   1st Qu.: 589  
+##  Median :  0.0   Median :2012-10-31   Median :1178  
+##  Mean   : 37.4   Mean   :2012-10-31   Mean   :1178  
+##  3rd Qu.: 27.0   3rd Qu.:2012-11-15   3rd Qu.:1766  
+##  Max.   :806.0   Max.   :2012-11-30   Max.   :2355
 ```
 
 With the new data frame in hand, I first reaggregate into total steps by day with imputed values, then add in the original steps by day totals.
 
 
-```{r echo=TRUE}
 
+```r
 ## Aggregate new flat data into object focused on total steps by day
 
 stepsDayPlus <- aggregate(
@@ -195,14 +246,13 @@ names(stepsDayPlus) <- c("date","total_steps")
 stepsDayPlus[,3] <- stepsDay[,2]
 
 names(stepsDayPlus)[3] <- "total_steps_NAs"
-
 ```
 
 Now with a combined data frame of totals with and without imputed values, I plot a histogram with the two sets overlaid.
 
 
-```{r echo=TRUE}
 
+```r
 ## Load ggplot2
 
 require(ggplot2)
@@ -216,8 +266,9 @@ plot.1 <- plot + geom_histogram(aes(x=stepsDayPlus$total_steps),fill = "red", al
 plot.2 <- plot.1 + geom_histogram(aes(x=stepsDayPlus$total_steps_NAs),fill = "green", alpha = 0.2, binwidth = 500)
 
 plot.2
-
 ```
+
+![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7.png) 
 
 My initial reaction is that rather than timeslots with NAs scattered across the various days, several complete days went unrecorded, resulting in a big spike of the average daily total once the average across all days was substituted in for NA values.
 
@@ -226,8 +277,8 @@ Said differently, instead of having 61 days with some missing slots each, it app
 Quick way to check this thinking is to see if there's any shift in the mean from the NA set.
 
 
-```{r echo=TRUE}
 
+```r
 ## Create a data frame for comparing means & medians
 
 comparison <- data.frame(1:2,1:2)
@@ -255,7 +306,12 @@ comparison[2,2] <- median(stepsDayPlus$total_steps)
 ## Return the data frame for comparison
 
 comparison
+```
 
+```
+##          mean median
+## NAs     10766  10765
+## imputed 10766  10766
 ```
 
 Which there appears not to be.
@@ -266,8 +322,8 @@ Which there appears not to be.
 
 The last phase of the analysis involves differentiation between weekday activity and weekend activity.  Our first step is to create the weekday/weekend variable.
 
-```{r echo=TRUE}
 
+```r
 ## Create index of weekdays for each row
 
 wdays <- (wday(data$date) %in% c(2:6))
@@ -309,7 +365,8 @@ plot.4 <- plot.3 +
             ggtitle("Comparison of Step Count by Interval, Weekdays vs. Weekends")
 
 plot.4
-
 ```
+
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9.png) 
 
 
